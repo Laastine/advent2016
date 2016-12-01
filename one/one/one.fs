@@ -27,7 +27,6 @@ let parseElements(elements: List<String>) =
   |> List.map (fun (e) ->
     let orientation = e.[0].ToString()
     let distance = e.[1..];
-    printfn "Orientation: %s Distance: %s" orientation distance
     (orientation, distance))
 
 let parseRoute(input: String) =
