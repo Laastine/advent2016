@@ -1,0 +1,5 @@
+*.paket
+*build
+*packages
+*obj
+*bin
