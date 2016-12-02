@@ -6,36 +6,53 @@ open System.IO
 
 let adventOneUrl = "http://adventofcode.com/2016/day/1/input"
 
-let fetchFromURL callback url =
-  let request = WebRequest.Create(Uri(adventOneUrl))
-  use response = request.GetResponse()
-  use stream = response.GetResponseStream()
-  use reader = new IO.StreamReader(stream)
-  callback reader url
-
-let printContent (reader: IO.StreamReader) url =
-  let content = reader.ReadToEnd()
-  printfn "Content %s" content
-  content
-
 let route = "R5, L2, L1, R1, R3, R3, L3, R3, R4, L2, R4, L4, R4, R3, L2, L1, L1, R2, R4, R4, L4, R3, L2, R1, L4, R1, R3, L5, L4, L5, R3, L3, L1, L1, R4, R2, R2, L1, L4, R191, R5, L2, R46, R3, L1, R74, L2, R2, R187, R3, R4, R1, L4, L4, L2, R4, L5, R4, R3, L2, L1, R3, R3, R3, R1, R1, L4, R4, R1, R5, R2, R1, R3, L4, L2, L2, R1, L3, R1, R3, L5, L3, R5, R3, R4, L1, R3, R2, R1, R2, L4, L1, L1, R3, L3, R4, L2, L4, L5, L5, L4, R2, R5, L4, R4, L2, R3, L4, L3, L5, R5, L4, L2, R3, R5, R5, L1, L4, R3, L1, R2, L5, L1, R4, L1, R5, R1, L4, L4, L4, R4, R3, L5, R1, L3, R4, R3, L2, L1, R1, R2, R2, R2, L1, L1, L2, L5, L3, L1"
 
-let position = (0,0,0,0)
-
-let parseElements(elements: List<String>) =
+let parseElements(elements: List<String>): List<String * String> =
   elements
   |> List.map (fun (e) ->
     let orientation = e.[0].ToString()
-    let distance = e.[1..];
+    let distance = e.[1..]
     (orientation, distance))
 
+let out(inputList: List<String * String>, initialList: List<int * int * int * int * int>): List<int * int * int * int * int> =
+  let rec orientations(inputList: List<String * String>, acc: List<int * int * int * int * int>): List<int * int * int * int * int> =
+    let (orientation, north, east, south, west) = acc.Head
+    if inputList.IsEmpty then acc
+    else
+      let (o,d) = inputList.Head
+      let (_, distance) = System.Int32.TryParse(d)
+      match o with
+      | "R" when orientation = 0 -> orientations(inputList.Tail, (orientation+1, 0, east+distance, 0, 0)::acc)
+      | "R" when orientation = 1 -> orientations(inputList.Tail, (orientation+1, 0, 0, south+distance, 0)::acc)
+      | "R" when orientation = 2 -> orientations(inputList.Tail, (orientation+1, 0, 0, 0, west+distance)::acc)
+      | "R" when orientation = 3 -> orientations(inputList.Tail, (0, north+distance, 0, 0, 0)::acc)
+      | "L" when orientation = 0 -> orientations(inputList.Tail, (3, 0, 0, 0, west+distance)::acc)
+      | "L" when orientation = 1 -> orientations(inputList.Tail, (orientation-1, north+distance, 0, 0, 0)::acc)
+      | "L" when orientation = 2 -> orientations(inputList.Tail, (orientation-1, 0, east+distance, 0, 0)::acc)
+      | "L" when orientation = 3 -> orientations(inputList.Tail, (orientation-1, 0, 0, south+distance, 0)::acc)
+      | _ -> printfn "ERROR"; acc
+  orientations(inputList, initialList)
+
+let reduceRoute(input: List<String * String>) =
+  let orientation = 0
+  out(input, [(orientation, 0, 0, 0, 0)])
+  |> List.map (fun x ->
+                let (_, north, east, south, west) = x
+                (north, east, south, west))
+  |> List.fold (fun (r1,r2,r3,r4) (l1,l2,l3,l4) -> (r1+l1, r2+l2, r3+l3, r4+l4)) (0,0,0,0)
+
 let parseRoute(input: String) =
-  input.Split(' ')
+  input.Split([|", "|], StringSplitOptions.None)
   |> Array.toList
   |> parseElements
+  |> reduceRoute
 
 [<EntryPoint>]
 let main argv =
-  let dada = parseRoute route
-  printfn "%A" dada
-  0 // return an integer exit code
+  let route = parseRoute route
+  printfn "%A" route
+  let (north, east, south, west) = route
+  let length = abs(north - south) + abs (east - west)
+  printfn "%A" length
+  0
