@@ -23,14 +23,14 @@ let out(inputList: List<String * String>, initialList: List<int * int * int * in
       let (o,d) = inputList.Head
       let (_, distance) = System.Int32.TryParse(d)
       match o with
-      | "R" when orientation = 0 -> orientations(inputList.Tail, (orientation+1, 0, east+distance, 0, 0)::acc)
-      | "R" when orientation = 1 -> orientations(inputList.Tail, (orientation+1, 0, 0, south+distance, 0)::acc)
-      | "R" when orientation = 2 -> orientations(inputList.Tail, (orientation+1, 0, 0, 0, west+distance)::acc)
-      | "R" when orientation = 3 -> orientations(inputList.Tail, (0, north+distance, 0, 0, 0)::acc)
-      | "L" when orientation = 0 -> orientations(inputList.Tail, (3, 0, 0, 0, west+distance)::acc)
-      | "L" when orientation = 1 -> orientations(inputList.Tail, (orientation-1, north+distance, 0, 0, 0)::acc)
-      | "L" when orientation = 2 -> orientations(inputList.Tail, (orientation-1, 0, east+distance, 0, 0)::acc)
-      | "L" when orientation = 3 -> orientations(inputList.Tail, (orientation-1, 0, 0, south+distance, 0)::acc)
+      | "R" when orientation = 0 -> orientations(inputList.Tail, (orientation+1, north, east+distance, south, west)::acc)
+      | "R" when orientation = 1 -> orientations(inputList.Tail, (orientation+1, north, east, south+distance, west)::acc)
+      | "R" when orientation = 2 -> orientations(inputList.Tail, (orientation+1, north, east, south, west+distance)::acc)
+      | "R" when orientation = 3 -> orientations(inputList.Tail, (0, north+distance, east, south, west)::acc)
+      | "L" when orientation = 0 -> orientations(inputList.Tail, (3, north, east, south, west+distance)::acc)
+      | "L" when orientation = 1 -> orientations(inputList.Tail, (orientation-1, north+distance, east, south, west)::acc)
+      | "L" when orientation = 2 -> orientations(inputList.Tail, (orientation-1, north, east+distance, south, west)::acc)
+      | "L" when orientation = 3 -> orientations(inputList.Tail, (orientation-1, north, east, south+distance, west)::acc)
       | _ -> printfn "ERROR"; acc
   orientations(inputList, initialList)
 
@@ -40,7 +40,7 @@ let reduceRoute(input: List<String * String>) =
   |> List.map (fun x ->
                 let (_, north, east, south, west) = x
                 (north, east, south, west))
-  |> List.fold (fun (r1,r2,r3,r4) (l1,l2,l3,l4) -> (r1+l1, r2+l2, r3+l3, r4+l4)) (0,0,0,0)
+  |> List.head
 
 let parseRoute(input: String) =
   input.Split([|", "|], StringSplitOptions.None)
