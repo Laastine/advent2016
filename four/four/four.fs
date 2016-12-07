@@ -12,6 +12,17 @@ let rec last = function
   | hd :: tl -> last tl
   | _ -> failwith "Empty list."
 
+let fromListStart(inputList: List<char*int>, n: int): List<char*int> =
+  List.toSeq inputList
+  |> Seq.take n
+  |> Seq.toList
+
+let areListIdentical(a: List<char>, b: List<char>): bool =
+  let setA = set a
+  let setB = set b
+  let diff = setA - setB |> Set.toArray
+  Array.isEmpty diff
+
 let countCharFromString(getStr: string, chkdChar: char): int =
   let rec recur(index: int, count: int) =
     if index < getStr.Length then
@@ -43,16 +54,37 @@ let parseLine(inputString: string): string*int*string =
   let characters = tokenizedString.Tail |> List.rev |> String.Concat
   (characters, value, checksum)
 
+let isValidChecksum(inputList: List<char*int>, checksum: string): bool =
+  let charList = explode checksum
+  let charsOfInputList = List.map (fun x ->
+                                          let (chars, _) = x
+                                          chars) inputList
+  areListIdentical(charsOfInputList, charList)
+
 let readInputData =
-  System.IO.File.ReadLines("./input2.txt")
-  |> Seq.toList
-  |> List.map parseLine
-  |> List.map (fun x ->
-                        let (inputString, _, _) = x
-                        addCharToList(inputString))
+  let parsedInputData =
+    System.IO.File.ReadLines("./input.txt")
+    |> Seq.toList
+    |> List.map parseLine
+    |> List.map (fun x ->
+                          let (inputString, code, checksum) = x
+                          (inputString, code, checksum))
+  parsedInputData
+    |> List.map (fun x ->
+                        let (inputString, code, checksum) = x
+                        let orderedInputList = addCharToList(inputString) |> List.sortBy (fun (_, x) -> -x)
+                        (orderedInputList, code, checksum))
+    |> List.map (fun x ->
+                        let (s, code, checksum) = x
+                        let fiveMostCommonChars = fromListStart(s, 5) |> List.sort
+                        (fiveMostCommonChars, code, checksum))
+    |> List.map (fun x ->
+                        let (s, code, checksum) = x
+                        let isValid = isValidChecksum(s, checksum)
+                        if isValid then code else 0)
+    |> List.fold (fun acc elem -> acc + elem) 0
 
 [<EntryPoint>]
 let main argv =
-    let foo = readInputData
-    printfn "%A" foo
+    printfn "%A" readInputData
     0 // return an integer exit code
