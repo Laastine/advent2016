@@ -67,6 +67,22 @@ let isValidChecksum(inputList: List<char*int>, checksum: string): bool =
                                           chars) inputList
   areListIdentical(charsOfInputList, charList)
 
+let shift(asciiCode: int, shiftCount: int) =
+  let num = int(asciiCode) - int('a')
+  let offsetNum = (num + shiftCount) % 26
+  let res = offsetNum + int('a')
+  if int(asciiCode) = 45 then
+    ' '
+  elif offsetNum < 0 then
+    char(int('z') + offsetNum + 1)
+  else
+    char(offsetNum + int('a'))
+
+let shiftCharsForward(inputString: string, shiftCount: int): string =
+  inputString.ToCharArray()
+    |> Array.map (fun x -> shift((int x), shiftCount))
+    |> String.Concat
+
 let readInputData =
   let parsedInputData =
     System.IO.File.ReadLines("./input.txt")
@@ -84,7 +100,20 @@ let readInputData =
                         if isValid then code else 0)
     |> List.sum
 
+let nortPole =
+  let parsedInputData =
+    System.IO.File.ReadLines("./input.txt")
+    |> Seq.toList
+    |> List.map (fun x ->
+                          let (inputString, code, checksum) = parseLine(x)
+                          (inputString, code, checksum))
+  parsedInputData
+    |> List.map (fun x ->
+                        let (inputString, code, checksum) = x
+                        (shiftCharsForward(inputString, code), code))
+    |> List.filter (fun (encodedString, code) -> encodedString.Contains("north"))
+
 [<EntryPoint>]
 let main argv =
-    printfn "%A" readInputData
+    printfn "%A" nortPole
     0 // return an integer exit code
