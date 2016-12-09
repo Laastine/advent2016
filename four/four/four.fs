@@ -12,15 +12,21 @@ let rec last = function
   | hd :: tl -> last tl
   | _ -> failwith "Empty list."
 
-let fromListStart(inputList: List<char*int>, n: int): List<char*int> =
-  List.toSeq inputList
-  |> Seq.take n
-  |> Seq.toList
+let fromListStart(inputList: List<char*int>): List<char*int> =
+  let desiredIndex = if inputList.Length >= 4 then 4 else inputList.Length - 1
+  let (_, minOcc) = inputList.Item desiredIndex
+  let orderedList =
+    inputList
+      |> List.filter (fun (_,elements) -> elements >= minOcc)
+      |> List.toSeq
+      |> Seq.take (desiredIndex+1)
+      |> Seq.toList
+  orderedList
 
 let areListIdentical(a: List<char>, b: List<char>): bool =
   let setA = set a
   let setB = set b
-  let diff = setA - setB |> Set.toArray
+  let diff = setB - setA |> Set.toArray
   Array.isEmpty diff
 
 let countCharFromString(getStr: string, chkdChar: char): int =
@@ -65,24 +71,18 @@ let readInputData =
   let parsedInputData =
     System.IO.File.ReadLines("./input.txt")
     |> Seq.toList
-    |> List.map parseLine
     |> List.map (fun x ->
-                          let (inputString, code, checksum) = x
+                          let (inputString, code, checksum) = parseLine(x)
                           (inputString, code, checksum))
   parsedInputData
     |> List.map (fun x ->
                         let (inputString, code, checksum) = x
-                        let orderedInputList = addCharToList(inputString) |> List.sortBy (fun (_, x) -> -x)
-                        (orderedInputList, code, checksum))
-    |> List.map (fun x ->
-                        let (s, code, checksum) = x
-                        let fiveMostCommonChars = fromListStart(s, 5) |> List.sort
-                        (fiveMostCommonChars, code, checksum))
-    |> List.map (fun x ->
-                        let (s, code, checksum) = x
-                        let isValid = isValidChecksum(s, checksum)
+                        let fiveMostCommonChars = addCharToList(inputString)
+                                                  |> List.sortBy (fun (x,y) -> (-y,x))
+                                                  |> fromListStart
+                        let isValid = isValidChecksum(fiveMostCommonChars, checksum)
                         if isValid then code else 0)
-    |> List.fold (fun acc elem -> acc + elem) 0
+    |> List.sum
 
 [<EntryPoint>]
 let main argv =
