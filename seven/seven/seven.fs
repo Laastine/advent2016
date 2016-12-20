@@ -10,9 +10,7 @@ let flatBooleans(abbaList: List<string>): bool =
   abbaList |> Seq.fold (fun acc x -> acc && x.Length = 0) false
 
 let findRepeatedChars(content: List<string>*List<string>): bool =
-  // printfn "content %A" content
   let (bracketSectionString, inputString) = content
-
   let rec recur(input: List<char>, acc: List<string>): List<string> =
     match input with
     | [] -> acc
@@ -32,7 +30,6 @@ let stripBrackets(inputList: string): List<string>*List<string> =
     |> List.fold (fun acc x ->
                           let (fst, snd) = acc
                           if x.Contains("[") then x::fst,snd
-                          else if x.Contains("]") then x::fst,snd
                           else fst,x::snd) ([],[])
 
 let readInputData =
