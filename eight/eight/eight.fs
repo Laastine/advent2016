@@ -4,8 +4,8 @@ open System
 open System.IO
 open System.Text.RegularExpressions
 
-let lenX = 8
-let lenY = 3
+let lenX = 50
+let lenY = 6
 
 let listShiftElements(input: List<'T>, amount: int): List<'T> =
   let rec recur(inputList: List<'T>, amount: int): List<'T> =
@@ -23,28 +23,22 @@ let row (i: int, arr: 'T[,]) = arr.[i..i, *] |> Seq.cast<'T> |> List.ofSeq
 let col (i: int, arr: 'T[,]) = arr.[*, i..i] |> Seq.cast<'T> |> List.ofSeq
 
 let handleRotate(input: List<string>, array2d: char[,]): char[,] =
-  printfn "handleRotate %A" input
   let orientation = input.[1]
   let (_, index) = System.Int32.TryParse(Regex.Split(input.[2], "=").[1])
   let (_, amount) = System.Int32.TryParse(input.[input.Length-1])
-  // printfn "Translate: orientation: %A, index: %A, amount: %A" orientation index amount
   if orientation = "row" then
                                       let row = row(index, array2d)
-                                      printfn "row %A" row
                                       let shifted = listShiftElements(row, amount)
-                                      printfn "shifted %A" shifted
-                                      for y in 0..(lenX-1) do
-                                        array2d.[index,y] <- shifted.[y]
+                                      for x in 0..(lenX-1) do
+                                        array2d.[index,x] <- shifted.[x]
                                       array2d
   else if orientation = "column" then
                                       let column = col(index, array2d)
-                                      printfn "column %A" column
                                       let shifted = listShiftElements(column, amount)
-                                      printfn "shifted %A" shifted
-                                      for x in 0..(lenY-1) do
-                                        array2d.[x,index] <- shifted.[x]
+                                      for y in 0..(lenY-1) do
+                                        array2d.[y,index] <- shifted.[y]
                                       array2d
-  else failwith "orientation error"
+  else failwith "handleRotate error"
 
 let handleRect(input: List<string>, array2d: char[,]): char[,] =
   let coords = Regex.Split(input.[1], "x")
@@ -56,7 +50,6 @@ let handleRect(input: List<string>, array2d: char[,]): char[,] =
                   else z)
 
 let selectCmd(input: List<string>, resList: char[,]): char[,] =
-  // printfn "selectCmd %A" input
   if input.Head = "rotate" then handleRotate(input, resList)
   else if input.Head = "rect" then handleRect(input, resList)
   else failwith "selectCmd error"
@@ -64,17 +57,21 @@ let selectCmd(input: List<string>, resList: char[,]): char[,] =
 let tokenizeString(x: string): List<string> = Regex.Split(x, " ") |> List.ofArray
 
 let readInputData =
-  let bar =
-    System.IO.File.ReadLines("./eight2.txt")
+  let data =
+    System.IO.File.ReadLines("./eight.txt")
       |> Seq.toList
       |> List.map tokenizeString
   let rec recur(input: List<List<string>>, acc: char[,]): char[,] =
      match input with
      | [] -> acc
      | head::tail -> recur(tail, selectCmd(head, acc))
-  recur(bar, Array2D.init lenY lenX (fun x y -> '.'))
+  recur(data, Array2D.init lenY lenX (fun x y -> '.'))
+
+let calcHashes(input: char[,]): int =
+  input |> Seq.cast<char> |> Seq.filter (fun x -> x = '#') |> Seq.length
 
 [<EntryPoint>]
 let main argv =
   printfn "%A" readInputData
+  printfn "Length: %A" (calcHashes(readInputData))
   0 // return an integer exit code
