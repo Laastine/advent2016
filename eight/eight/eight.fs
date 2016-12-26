@@ -72,6 +72,6 @@ let calcHashes(input: char[,]): int =
 
 [<EntryPoint>]
 let main argv =
-  printfn "%A" readInputData
+  printfn "%270A" readInputData
   printfn "Length: %A" (calcHashes(readInputData))
   0 // return an integer exit code
